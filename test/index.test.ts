@@ -98,6 +98,32 @@ describe("stringify", () => {
     expect(errorOf(() => stringify(withSymbol)).rule).toBe("value");
     const withName = Object.assign([1], { extra: 2 });
     expect(errorOf(() => stringify(withName)).rule).toBe("value");
+    const hiddenIndex = Object.assign([1], { extra: 2 });
+    Object.defineProperty(hiddenIndex, "0", { enumerable: false });
+    expect(errorOf(() => stringify(hiddenIndex)).rule).toBe("value");
+  });
+
+  it("reads the array length before visiting elements", () => {
+    const growing: number[] = [1, 2];
+    Object.defineProperty(growing, "0", {
+      enumerable: true,
+      get() {
+        growing.push(3);
+        return 1;
+      },
+    });
+    const expected = "[1,2]";
+    expect(stringify(growing)).toBe(expected);
+  });
+
+  it("reads toJSON once", () => {
+    let reads = 0;
+    const value = {
+      get toJSON() {
+        return reads++ === 0 ? () => "first" : "not a function";
+      },
+    };
+    expect(stringify(value)).toBe('"first"');
   });
 
   it("passes the property key to toJSON", () => {

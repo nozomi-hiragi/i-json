@@ -37,12 +37,18 @@ export function stringify(value: unknown, options: Options = {}): string {
         }
         let out: string;
         if (Array.isArray(v)) {
+          // Snapshot the length first, as JSON.stringify does.
+          const length = v.length;
+          for (const key of Object.keys(v)) {
+            if (String(Number(key) >>> 0) !== key || Number(key) >= length) {
+              fail("Array has non-index properties", path);
+            }
+          }
           const items: string[] = [];
-          for (let i = 0; i < v.length; i++) {
+          for (let i = 0; i < length; i++) {
             if (!(i in v)) fail("Array hole", `${path}[${i}]`);
             items.push(write(v[i], String(i), `${path}[${i}]`));
           }
-          if (Object.keys(v).length !== v.length) fail("Array has non-index properties", path);
           out = `[${items.join(",")}]`;
         } else {
           const proto = Object.getPrototypeOf(v);
@@ -89,10 +95,10 @@ function writeString(s: string, path: string): string {
 
 /** Applies `toJSON` once with the property key, as JSON.stringify does. */
 function resolve(v: unknown, key: string): unknown {
-  if (typeof v === "object" && v !== null && typeof (v as { toJSON?: unknown }).toJSON === "function") {
-    return (v as { toJSON(key: string): unknown }).toJSON(key);
-  }
-  return v;
+  if (typeof v !== "object" || v === null) return v;
+  // Read toJSON once, so an accessor cannot change between check and call.
+  const toJSON: unknown = (v as { toJSON?: unknown }).toJSON;
+  return typeof toJSON === "function" ? toJSON.call(v, key) : v;
 }
 
 function fail(message: string, path: string): never {
