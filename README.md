@@ -49,7 +49,7 @@ stringify({ a: undefined }); // throws IJsonError instead of dropping the member
 
 | Option | Default | Effect |
 | --- | --- | --- |
-| `strict` | `false` | Also enforce the RFC 7493 SHOULD rules: numbers must name an IEEE 754 double exactly (no overflow, underflow, excess precision, or integers beyond ±(2^53−1)), and the top-level value must be an object or array. |
+| `strict` | `false` | Also enforce the RFC 7493 SHOULD rules: a number must be written with the same value as the shortest representation of the double it parses to (no overflow, underflow, excess digits, or integer literals beyond ±(2^53−1)), and the top-level value must be an object or array. |
 | `maxDepth` | `512` | Maximum nesting of arrays and objects. |
 
 By default only the MUST rules are enforced, since a message that breaks a SHOULD rule is still I-JSON. See [docs/test-cases.md](./docs/test-cases.md) for every rule and decision.

@@ -25,9 +25,10 @@ export class IJsonError extends Error {
 
 export interface Options {
   /**
-   * Also enforce the RFC 7493 SHOULD rules: numbers must fit an IEEE 754
-   * double exactly (no overflow, underflow, excess precision or integers
-   * beyond ±(2^53−1)), and the top-level value must be an object or array.
+   * Also enforce the RFC 7493 SHOULD rules: a number must be written with the
+   * same value as the shortest representation of the double it parses to (no
+   * overflow, underflow, excess digits or integer literals beyond ±(2^53−1)),
+   * and the top-level value must be an object or array.
    * Defaults to false, which enforces only the MUST rules.
    */
   strict?: boolean;
