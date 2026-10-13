@@ -92,6 +92,20 @@ describe("stringify", () => {
     expect(stringify(hidden)).toBe("{}");
   });
 
+  it("rejects data on arrays that JSON would drop", () => {
+    const withSymbol: unknown[] = [];
+    (withSymbol as unknown as Record<symbol, number>)[Symbol("id")] = 1;
+    expect(errorOf(() => stringify(withSymbol)).rule).toBe("value");
+    const withName = Object.assign([1], { extra: 2 });
+    expect(errorOf(() => stringify(withName)).rule).toBe("value");
+  });
+
+  it("passes the property key to toJSON", () => {
+    const keyed = { toJSON: (key: string) => key };
+    expect(stringify({ a: keyed, b: [keyed] })).toBe(JSON.stringify({ a: keyed, b: [keyed] }));
+    expect(stringify(keyed)).toBe('""');
+  });
+
   it("rejects cycles", () => {
     const a: unknown[] = [];
     a.push(a);
