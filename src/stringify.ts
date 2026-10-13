@@ -21,12 +21,16 @@ export function stringify(value: unknown, options: Options = {}): string {
         return writeString(v, path);
       case "boolean":
         return v ? "true" : "false";
-      case "number":
+      case "number": {
         if (!Number.isFinite(v)) fail(`${v} is not a JSON number`, path);
-        if (strict && Number.isInteger(v) && !Number.isSafeInteger(v)) {
+        const text = JSON.stringify(v);
+        // Match the strict parser: only a literal written as a plain integer
+        // must be safe (JSON.stringify switches to exponent form at 1e21).
+        if (strict && /^-?\d+$/.test(text) && !Number.isSafeInteger(v)) {
           throw new IJsonError(`Integer at ${path} is outside ±(2^53−1)`, "numbers");
         }
-        return JSON.stringify(v);
+        return text;
+      }
       case "object": {
         if (v === null) return "null";
         if (stack.has(v)) fail("Circular reference", path);

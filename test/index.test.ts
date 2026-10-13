@@ -150,6 +150,10 @@ describe("stringify", () => {
     expect(errorOf(() => stringify(1, { strict: true })).rule).toBe("top-level");
     expect(stringify([2 ** 53])).toBe("[9007199254740992]");
     expect(errorOf(() => stringify([2 ** 53], { strict: true })).rule).toBe("numbers");
+    for (const n of [1e300, Number.MAX_VALUE, -1e21]) {
+      const text = stringify([n], { strict: true });
+      expect(parse(text, { strict: true })).toEqual([n]);
+    }
     expect(errorOf(() => stringify(new Date(0), { strict: true })).rule).toBe("top-level");
     expect(stringify({ toJSON: () => [1] }, { strict: true })).toBe("[1]");
   });
