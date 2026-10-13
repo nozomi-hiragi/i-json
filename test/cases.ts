@@ -109,7 +109,8 @@ export const cases: Case[] = [
   { id: "numbers/max-double", rule: "numbers", input: "[1.7976931348623157e308]", valid: true },
   { id: "numbers/min-subnormal", rule: "numbers", input: "[5e-324]", valid: true },
   { id: "numbers/exponent-integer-value", rule: "numbers", input: "[1e300]", valid: true, note: "decision: the safe-integer limit applies only to integer literals" },
-  { id: "numbers/excess-precision", rule: "numbers", input: "[3.141592653589793238462643383279]", valid: true, note: "decision: rounding a fraction to the nearest double is accepted" },
+  { id: "numbers/trailing-zero", rule: "numbers", input: "[1.10]", valid: true, note: "same value as 1.1, so no precision is lost" },
+  { id: "numbers/inexact-but-shortest", rule: "numbers", input: "[0.1]", valid: true, note: "0.1 is the shortest decimal for its double, so it round-trips" },
 
   // --- numbers: beyond IEEE 754 double (SHOULD NOT) ---
   { id: "numbers/overflow", rule: "numbers", input: "[1E400]", valid: true, validStrict: false, note: "example from RFC 7493 §2.2" },
@@ -118,6 +119,8 @@ export const cases: Case[] = [
   { id: "numbers/unsafe-integer", rule: "numbers", input: "[9007199254740992]", valid: true, validStrict: false, note: "strict: integer literals beyond ±(2^53−1)" },
   { id: "numbers/unsafe-negative-integer", rule: "numbers", input: "[-9007199254740992]", valid: true, validStrict: false },
   { id: "numbers/underflow-to-zero", rule: "numbers", input: "[1e-400]", valid: true, validStrict: false, note: "strict: a nonzero literal that rounds to 0" },
+  { id: "numbers/excess-precision", rule: "numbers", input: "[3.141592653589793238462643383279]", valid: true, validStrict: false, note: "example from RFC 7493 §2.2" },
+  { id: "numbers/excess-precision-integer-digits", rule: "numbers", input: "[1.0000000000000000001]", valid: true, validStrict: false, note: "rounds to 1" },
 
   // --- duplicates: valid ---
   { id: "duplicates/case-differs", rule: "duplicates", input: '{"a":1,"A":2}', valid: true },

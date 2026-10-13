@@ -21,7 +21,7 @@ A message that breaks only a SHOULD is still an I-JSON message. So by default th
 
 Opt-in SHOULD checks:
 
-- **Numbers beyond IEEE 754 double** (§2.2): literals that overflow to ±Infinity (`1E400`), integer literals beyond ±(2^53−1), and nonzero literals that underflow to 0 (`1e-400`). Excess decimal precision (`3.141592653589793238462643383279`) is accepted even in strict mode, since every fraction is rounded to a double anyway. `1e300` is not an integer literal, so the safe-integer check does not apply to it.
+- **Numbers beyond IEEE 754 double** (§2.2): literals that overflow to ±Infinity (`1E400`), integer literals beyond ±(2^53−1), and nonzero literals that underflow to 0 (`1e-400`). Literals with more precision than a double holds (`3.141592653589793238462643383279`) are also rejected: a literal passes only if it has the same decimal value as the shortest representation of the double it parses to, so `0.1` and `1.10` pass. `1e300` is not an integer literal, so the safe-integer check does not apply to it.
 - **Scalar top-level values** (§4.1): strict mode requires an object or array.
 
 Other decisions:
