@@ -2,7 +2,7 @@
 
 Strict JSON parser, serializer and validator conforming to [I-JSON (RFC 7493)](https://www.rfc-editor.org/rfc/rfc7493).
 
-> Status: work in progress. Not yet published.
+> Status: not yet published to npm.
 
 ## What I-JSON requires
 
@@ -18,6 +18,41 @@ I-JSON is a restricted profile of JSON ([RFC 8259](https://www.rfc-editor.org/rf
 ```sh
 npm install @nozomi-hiragi/i-json
 ```
+
+## Usage
+
+```ts
+import { isIJson, parse, stringify, IJsonError } from "@nozomi-hiragi/i-json";
+
+isIJson('{"a":1}'); // true
+isIJson('{"a":1,"a":2}'); // false: duplicate member name
+
+parse('{"name":"i-json"}'); // { name: "i-json" }
+parse(new Uint8Array(bytes)); // UTF-8 bytes are validated too
+
+try {
+  parse('["\\uDEAD"]');
+} catch (error) {
+  if (error instanceof IJsonError) {
+    error.rule; // "characters"
+    error.position; // 2 (index of the escape)
+  }
+}
+
+stringify({ a: [1, "x"] }); // '{"a":[1,"x"]}'
+stringify({ a: undefined }); // throws IJsonError instead of dropping the member
+```
+
+`parse` and `isIJson` accept a string or UTF-8 bytes. `stringify` throws on anything `JSON.stringify` would silently drop or change: `undefined`, functions, symbols, bigints, `NaN` and `Infinity`, cycles, non-plain objects (objects with `toJSON` are allowed), and strings with unpaired surrogates or noncharacters.
+
+### Options
+
+| Option | Default | Effect |
+| --- | --- | --- |
+| `strict` | `false` | Also enforce the RFC 7493 SHOULD rules: numbers must name an IEEE 754 double exactly (no overflow, underflow, excess precision, or integers beyond ±(2^53−1)), and the top-level value must be an object or array. |
+| `maxDepth` | `512` | Maximum nesting of arrays and objects. |
+
+By default only the MUST rules are enforced, since a message that breaks a SHOULD rule is still I-JSON. See [docs/test-cases.md](./docs/test-cases.md) for every rule and decision.
 
 ## License
 

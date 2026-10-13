@@ -1,15 +1,7 @@
 /**
  * I-JSON (RFC 7493) parser, serializer and validator.
- *
- * Implementation is in progress; see README for the planned API.
  */
 
-export class IJsonError extends Error {
-  override name = "IJsonError";
-}
-
-/** Reports whether `text` is a valid I-JSON message. */
-export function isIJson(text: string): boolean {
-  void text;
-  throw new IJsonError("not implemented yet");
-}
+export { IJsonError, type IJsonRule, type Options } from "./errors.js";
+export { isIJson, parse, type JsonValue } from "./parse.js";
+export { stringify } from "./stringify.js";
