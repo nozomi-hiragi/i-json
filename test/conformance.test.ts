@@ -22,11 +22,18 @@ describe("case list", () => {
   });
 });
 
-// Enabled once the validator is implemented (plan step 3).
+// Enabled once the validator is implemented (plan step 3). The strict run
+// turns on every opt-in SHOULD check.
 describe.skip("isIJson conformance", () => {
   it.each(cases)("$id", async (c) => {
     const { isIJson } = await import("../src/index.js");
     const input = typeof c.input === "string" ? c.input : new Uint8Array(c.input);
     expect(isIJson(input as string)).toBe(c.valid);
+  });
+
+  it.each(cases)("$id (strict)", async (c) => {
+    const { isIJson } = await import("../src/index.js");
+    const input = typeof c.input === "string" ? c.input : new Uint8Array(c.input);
+    expect(isIJson(input as string /* , { strict: true } */)).toBe(c.validStrict ?? c.valid);
   });
 });

@@ -19,7 +19,10 @@ export interface Case {
   id: string;
   rule: Rule;
   input: string | number[];
+  /** Result with default options: only the MUST rules are enforced. */
   valid: boolean;
+  /** Result with the opt-in SHOULD checks enabled, when it differs from `valid`. */
+  validStrict?: boolean;
   note?: string;
 }
 
@@ -108,13 +111,13 @@ export const cases: Case[] = [
   { id: "numbers/exponent-integer-value", rule: "numbers", input: "[1e300]", valid: true, note: "decision: the safe-integer limit applies only to integer literals" },
   { id: "numbers/excess-precision", rule: "numbers", input: "[3.141592653589793238462643383279]", valid: true, note: "decision: rounding a fraction to the nearest double is accepted" },
 
-  // --- numbers: invalid ---
-  { id: "numbers/overflow", rule: "numbers", input: "[1E400]", valid: false, note: "example from RFC 7493 §2.2" },
-  { id: "numbers/negative-overflow", rule: "numbers", input: "[-1E400]", valid: false },
-  { id: "numbers/just-over-max", rule: "numbers", input: "[1.8e308]", valid: false },
-  { id: "numbers/unsafe-integer", rule: "numbers", input: "[9007199254740992]", valid: false, note: "decision: reject integer literals beyond ±(2^53−1)" },
-  { id: "numbers/unsafe-negative-integer", rule: "numbers", input: "[-9007199254740992]", valid: false },
-  { id: "numbers/underflow-to-zero", rule: "numbers", input: "[1e-400]", valid: false, note: "decision: a nonzero literal that rounds to 0 is rejected" },
+  // --- numbers: beyond IEEE 754 double (SHOULD NOT) ---
+  { id: "numbers/overflow", rule: "numbers", input: "[1E400]", valid: true, validStrict: false, note: "example from RFC 7493 §2.2" },
+  { id: "numbers/negative-overflow", rule: "numbers", input: "[-1E400]", valid: true, validStrict: false },
+  { id: "numbers/just-over-max", rule: "numbers", input: "[1.8e308]", valid: true, validStrict: false },
+  { id: "numbers/unsafe-integer", rule: "numbers", input: "[9007199254740992]", valid: true, validStrict: false, note: "strict: integer literals beyond ±(2^53−1)" },
+  { id: "numbers/unsafe-negative-integer", rule: "numbers", input: "[-9007199254740992]", valid: true, validStrict: false },
+  { id: "numbers/underflow-to-zero", rule: "numbers", input: "[1e-400]", valid: true, validStrict: false, note: "strict: a nonzero literal that rounds to 0" },
 
   // --- duplicates: valid ---
   { id: "duplicates/case-differs", rule: "duplicates", input: '{"a":1,"A":2}', valid: true },
@@ -132,7 +135,7 @@ export const cases: Case[] = [
   { id: "duplicates/empty-name", rule: "duplicates", input: '{"":1,"":2}', valid: false },
 
   // --- top-level ---
-  { id: "top-level/number", rule: "top-level", input: "1", valid: true, note: "decision: allowed by default; §4.1 is advice to protocol designers" },
-  { id: "top-level/string", rule: "top-level", input: '"a"', valid: true },
-  { id: "top-level/null", rule: "top-level", input: "null", valid: true },
+  { id: "top-level/number", rule: "top-level", input: "1", valid: true, validStrict: false, note: "strict: §4.1 asks protocols for an object or array" },
+  { id: "top-level/string", rule: "top-level", input: '"a"', valid: true, validStrict: false },
+  { id: "top-level/null", rule: "top-level", input: "null", valid: true, validStrict: false },
 ];

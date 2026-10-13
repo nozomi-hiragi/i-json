@@ -15,17 +15,19 @@ The conformance cases live in [`test/cases.ts`](../test/cases.ts). Each case nam
 | `duplicates` | RFC 7493 §2.3 | Objects MUST NOT have duplicate member names |
 | `top-level` | RFC 7493 §4.1 | Protocols SHOULD NOT use scalar top-level values |
 
-## Decisions
+## MUST versus SHOULD
 
-RFC 7493 leaves some points as SHOULD or to the receiver. These are the defaults the cases encode; options to relax or tighten them can come later.
+A message that breaks only a SHOULD is still an I-JSON message. So by default the library enforces the MUST rules (grammar, UTF-8, characters, duplicate names) and accepts everything else. The SHOULD rules are opt-in checks; each case's `validStrict` gives the expected result with all of them enabled.
 
-- **UTF-8 BOM is rejected.** RFC 8259 forbids generating one and allows parsers to ignore it; a strict profile rejects it.
-- **Number overflow is rejected.** `1E400` and anything that rounds to ±Infinity is invalid.
-- **Integer literals beyond ±(2^53−1) are rejected.** A literal with no fraction or exponent must be a safe integer. `1e300` is accepted because it is not written as an integer.
-- **Nonzero literals that underflow to 0 are rejected** (`1e-400`).
-- **Excess decimal precision is accepted.** `3.141592653589793238462643383279` rounds to the nearest double like every other fraction.
-- **Duplicate names are compared after unescaping, by code point.** `"a"` and `"a"` collide; `"é"` (U+00E9) and `"é"` do not, since no Unicode normalization is applied.
-- **Scalar top-level values are accepted.** §4.1 is advice to protocol designers, so it fits better as an opt-in option.
+Opt-in SHOULD checks:
+
+- **Numbers beyond IEEE 754 double** (§2.2): literals that overflow to ±Infinity (`1E400`), integer literals beyond ±(2^53−1), and nonzero literals that underflow to 0 (`1e-400`). Excess decimal precision (`3.141592653589793238462643383279`) is accepted even in strict mode, since every fraction is rounded to a double anyway. `1e300` is not an integer literal, so the safe-integer check does not apply to it.
+- **Scalar top-level values** (§4.1): strict mode requires an object or array.
+
+Other decisions:
+
+- **UTF-8 BOM is rejected.** RFC 8259 forbids generating one, so a message carrying it is not a conforming JSON text.
+- **Duplicate names are compared after unescaping, by code point.** `"a"` and `"\u0061"` collide; `"é"` (U+00E9) and `"e\u0301"` do not, since no Unicode normalization is applied.
 
 ## Out of scope for now
 
