@@ -79,6 +79,19 @@ describe("stringify", () => {
     expect(errorOf(() => stringify(value)).rule).toBe("value");
   });
 
+  it("rejects array holes", () => {
+    // eslint-disable-next-line no-sparse-arrays
+    expect(errorOf(() => stringify([, 1])).rule).toBe("value");
+    expect(errorOf(() => stringify(new Array(1))).rule).toBe("value");
+  });
+
+  it("rejects enumerable symbol-keyed properties", () => {
+    expect(errorOf(() => stringify({ [Symbol("id")]: 1 })).rule).toBe("value");
+    const hidden = {};
+    Object.defineProperty(hidden, Symbol("hidden"), { value: 1, enumerable: false });
+    expect(stringify(hidden)).toBe("{}");
+  });
+
   it("rejects cycles", () => {
     const a: unknown[] = [];
     a.push(a);
@@ -97,5 +110,7 @@ describe("stringify", () => {
     expect(errorOf(() => stringify(1, { strict: true })).rule).toBe("top-level");
     expect(stringify([2 ** 53])).toBe("[9007199254740992]");
     expect(errorOf(() => stringify([2 ** 53], { strict: true })).rule).toBe("numbers");
+    expect(errorOf(() => stringify(new Date(0), { strict: true })).rule).toBe("top-level");
+    expect(stringify({ toJSON: () => [1] }, { strict: true })).toBe("[1]");
   });
 });

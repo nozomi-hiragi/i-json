@@ -3,20 +3,19 @@ import { DEFAULT_MAX_DEPTH, IJsonError, isNoncharacter, type Options } from "./e
 /**
  * Serializes `value` as an I-JSON message. Throws `IJsonError` instead of
  * silently dropping or changing anything JSON.stringify would: `undefined`,
- * functions, symbols, bigints, NaN and Infinity, cycles, strings with
+ * functions, symbols (as values or keys), bigints, NaN and Infinity, cycles,
+ * array holes, strings with
  * surrogates or noncharacters, and objects other than plain objects and
  * arrays (an object with a `toJSON` method is serialized by its result).
  */
 export function stringify(value: unknown, options: Options = {}): string {
   const strict = options.strict ?? false;
-  if (strict && (value === null || typeof value !== "object")) {
-    throw new IJsonError("Top-level value must be an object or array", "top-level");
-  }
   const maxDepth = options.maxDepth ?? DEFAULT_MAX_DEPTH;
   const stack = new Set<object>();
 
-  const write = (input: unknown, path: string): string => {
-    const v = hasToJSON(input) ? input.toJSON() : input;
+  const write = (input: unknown, path: string): string => writeResolved(resolve(input), path);
+
+  const writeResolved = (v: unknown, path: string): string => {
     switch (typeof v) {
       case "string":
         return writeString(v, path);
@@ -35,11 +34,19 @@ export function stringify(value: unknown, options: Options = {}): string {
         stack.add(v);
         let out: string;
         if (Array.isArray(v)) {
-          out = `[${v.map((item, i) => write(item, `${path}[${i}]`)).join(",")}]`;
+          const items: string[] = [];
+          for (let i = 0; i < v.length; i++) {
+            if (!(i in v)) fail("Array hole", `${path}[${i}]`);
+            items.push(write(v[i], `${path}[${i}]`));
+          }
+          out = `[${items.join(",")}]`;
         } else {
           const proto = Object.getPrototypeOf(v);
           if (proto !== Object.prototype && proto !== null) {
             fail(`${proto?.constructor?.name ?? "Object"} is not a plain object`, path);
+          }
+          if (Object.getOwnPropertySymbols(v).some((sym) => Object.prototype.propertyIsEnumerable.call(v, sym))) {
+            fail("Symbol-keyed property", path);
           }
           out = `{${Object.keys(v)
             .map((key) => `${writeString(key, path)}:${write((v as Record<string, unknown>)[key], `${path}.${key}`)}`)
@@ -53,7 +60,11 @@ export function stringify(value: unknown, options: Options = {}): string {
     }
   };
 
-  return write(value, "$");
+  const top = resolve(value);
+  if (strict && (top === null || typeof top !== "object")) {
+    throw new IJsonError("Top-level value must be an object or array", "top-level");
+  }
+  return writeResolved(top, "$");
 }
 
 function writeString(s: string, path: string): string {
@@ -75,8 +86,12 @@ function writeString(s: string, path: string): string {
   return JSON.stringify(s);
 }
 
-function hasToJSON(v: unknown): v is { toJSON(): unknown } {
-  return typeof v === "object" && v !== null && typeof (v as { toJSON?: unknown }).toJSON === "function";
+/** Applies `toJSON` once, as JSON.stringify does. */
+function resolve(v: unknown): unknown {
+  if (typeof v === "object" && v !== null && typeof (v as { toJSON?: unknown }).toJSON === "function") {
+    return (v as { toJSON(): unknown }).toJSON();
+  }
+  return v;
 }
 
 function fail(message: string, path: string): never {

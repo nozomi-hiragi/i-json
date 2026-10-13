@@ -43,7 +43,7 @@ stringify({ a: [1, "x"] }); // '{"a":[1,"x"]}'
 stringify({ a: undefined }); // throws IJsonError instead of dropping the member
 ```
 
-`parse` and `isIJson` accept a string or UTF-8 bytes. `stringify` throws on anything `JSON.stringify` would silently drop or change: `undefined`, functions, symbols, bigints, `NaN` and `Infinity`, cycles, non-plain objects (objects with `toJSON` are allowed), and strings with unpaired surrogates or noncharacters.
+`parse` and `isIJson` accept a string or UTF-8 bytes. `stringify` throws on anything `JSON.stringify` would silently drop or change: `undefined`, functions, symbols (as values or keys), bigints, `NaN` and `Infinity`, cycles, array holes, non-plain objects (objects with `toJSON` are allowed), and strings with unpaired surrogates or noncharacters.
 
 ### Options
 
