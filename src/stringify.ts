@@ -4,9 +4,9 @@ import { DEFAULT_MAX_DEPTH, IJsonError, isNoncharacter, type Options } from "./e
  * Serializes `value` as an I-JSON message. Throws `IJsonError` instead of
  * silently dropping or changing anything JSON.stringify would: `undefined`,
  * functions, symbols (as values or keys), bigints, NaN and Infinity, cycles,
- * array holes, strings with
- * surrogates or noncharacters, and objects other than plain objects and
- * arrays (an object with a `toJSON` method is serialized by its result).
+ * array holes, strings with surrogates or noncharacters, and objects other
+ * than plain objects and arrays (an object with a `toJSON` method is
+ * serialized by its result).
  */
 export function stringify(value: unknown, options: Options = {}): string {
   const strict = options.strict ?? false;
