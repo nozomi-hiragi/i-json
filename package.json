@@ -4,6 +4,7 @@
   "description": "Strict JSON parser, serializer and validator conforming to I-JSON (RFC 7493): UTF-8 only, no duplicate keys, IEEE 754 safe numbers, no lone surrogates.",
   "license": "MIT",
   "author": "nozomi-hiragi",
+  "funding": "https://ko-fi.com/nozomi_hiragi",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nozomi-hiragi/i-json.git"
