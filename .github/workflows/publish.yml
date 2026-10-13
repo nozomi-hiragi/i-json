@@ -26,10 +26,19 @@ jobs:
       - run: npm install -g npm@11
       - name: Check the tag matches package.json
         run: test "v$(node -p 'require("./package.json").version')" = "$GITHUB_REF_NAME"
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm publish --access public --provenance
-        env:
-          # Used only until trusted publishing is set up on npmjs.com.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Skip versions already on npm
+        id: published
+        run: |
+          if npm view "$(node -p 'require("./package.json").name')@${GITHUB_REF_NAME#v}" version >/dev/null 2>&1; then
+            echo "already=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::${GITHUB_REF_NAME} is already on npm; nothing to publish."
+          fi
+      - if: steps.published.outputs.already != 'true'
+        run: npm ci
+      - if: steps.published.outputs.already != 'true'
+        run: npm run typecheck
+      - if: steps.published.outputs.already != 'true'
+        run: npm test
+      # Authenticates with npm trusted publishing (OIDC); no token is stored.
+      - if: steps.published.outputs.already != 'true'
+        run: npm publish --access public --provenance
