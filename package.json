@@ -1,0 +1,44 @@
+{
+  "name": "@nozomi-hiragi/i-json",
+  "version": "0.0.0",
+  "description": "Strict JSON parser, serializer and validator conforming to I-JSON (RFC 7493): UTF-8 only, no duplicate keys, IEEE 754 safe numbers, no lone surrogates.",
+  "license": "MIT",
+  "author": "nozomi-hiragi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nozomi-hiragi/i-json.git"
+  },
+  "keywords": [
+    "json",
+    "i-json",
+    "rfc7493",
+    "validator",
+    "parser"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.4"
+  }
+}
