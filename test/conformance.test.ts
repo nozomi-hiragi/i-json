@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { isIJson } from "../src/index.js";
 import { cases } from "./cases.js";
 
 describe("case list", () => {
@@ -22,18 +23,14 @@ describe("case list", () => {
   });
 });
 
-// Enabled once the validator is implemented (plan step 3). The strict run
-// turns on every opt-in SHOULD check.
-describe.skip("isIJson conformance", () => {
-  it.each(cases)("$id", async (c) => {
-    const { isIJson } = await import("../src/index.js");
-    const input = typeof c.input === "string" ? c.input : new Uint8Array(c.input);
-    expect(isIJson(input as string)).toBe(c.valid);
+const toInput = (input: string | number[]) => (typeof input === "string" ? input : new Uint8Array(input));
+
+describe("isIJson conformance", () => {
+  it.each(cases)("$id", (c) => {
+    expect(isIJson(toInput(c.input))).toBe(c.valid);
   });
 
-  it.each(cases)("$id (strict)", async (c) => {
-    const { isIJson } = await import("../src/index.js");
-    const input = typeof c.input === "string" ? c.input : new Uint8Array(c.input);
-    expect(isIJson(input as string /* , { strict: true } */)).toBe(c.validStrict ?? c.valid);
+  it.each(cases)("$id (strict)", (c) => {
+    expect(isIJson(toInput(c.input), { strict: true })).toBe(c.validStrict ?? c.valid);
   });
 });

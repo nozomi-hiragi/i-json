@@ -2,7 +2,7 @@
 
 The conformance cases live in [`test/cases.ts`](../test/cases.ts). Each case names the rule it exercises, its input (a string, or raw bytes for encoding checks) and whether it is a valid I-JSON message.
 
-`test/conformance.test.ts` checks the grammar cases against `JSON.parse` today and runs every case against `isIJson` once the validator exists.
+`test/conformance.test.ts` checks the grammar cases against `JSON.parse` and runs every case against `isIJson` with default and strict options.
 
 ## Rules
 
