@@ -4,6 +4,7 @@ Strict JSON parser, serializer and validator conforming to [I-JSON (RFC 7493)](h
 
 [![CI](https://github.com/nozomi-hiragi/i-json/actions/workflows/ci.yml/badge.svg)](https://github.com/nozomi-hiragi/i-json/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@nozomi-hiragi/i-json)](https://www.npmjs.com/package/@nozomi-hiragi/i-json)
+[![JSR](https://jsr.io/badges/@nozomi-hiragi/i-json)](https://jsr.io/@nozomi-hiragi/i-json)
 
 ## What I-JSON requires
 
