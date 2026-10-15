@@ -1,20 +1,55 @@
 name: Publish
 
-# Publishes to npm and JSR when a GitHub release is published. The release tag
-# must match the version in package.json and jsr.json (e.g. v0.1.0).
+# When a push to main changes the version in package.json, creates the GitHub
+# release (tag vX.Y.Z) and publishes that version to npm and JSR. Pushes that
+# leave the version alone, or whose tag already exists, do nothing.
 
 on:
-  release:
-    types: [published]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
 
 permissions:
   contents: read
-  id-token: write # npm trusted publishing and provenance, JSR OIDC publishing
 
 jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the tag and release
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check jsr.json version matches package.json
+        run: test "$(node -p 'require("./jsr.json").version')" = "$(node -p 'require("./package.json").version')"
+      - name: Create the release for a new version
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v$(node -p 'require("./package.json").version')"
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "::notice::$tag already exists; nothing to release."
+            exit 0
+          fi
+          gh release create "$tag" --target "$GITHUB_SHA" --title "$tag" --generate-notes
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
   publish:
+    needs: release
+    if: needs.release.outputs.tag != ''
     runs-on: ubuntu-latest
     environment: npm
+    permissions:
+      contents: read
+      id-token: write # npm trusted publishing and provenance
+    env:
+      TAG: ${{ needs.release.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,14 +59,12 @@ jobs:
           cache: npm
       # Staged publishing needs npm 11.15.0 or later.
       - run: npm install -g npm@11
-      - name: Check the tag matches package.json
-        run: test "v$(node -p 'require("./package.json").version')" = "$GITHUB_REF_NAME"
       - name: Skip versions already on npm
         id: published
         run: |
-          if npm view "$(node -p 'require("./package.json").name')@${GITHUB_REF_NAME#v}" version >/dev/null 2>&1; then
+          if npm view "$(node -p 'require("./package.json").name')@${TAG#v}" version >/dev/null 2>&1; then
             echo "already=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::${GITHUB_REF_NAME} is already on npm; nothing to publish."
+            echo "::notice::${TAG} is already on npm; nothing to publish."
           fi
       - if: steps.published.outputs.already != 'true'
         run: npm ci
@@ -46,20 +79,25 @@ jobs:
         run: npm stage publish --access public --provenance
 
   jsr:
+    needs: release
+    if: needs.release.outputs.tag != ''
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # JSR OIDC publishing
+    env:
+      TAG: ${{ needs.release.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Check the tag matches jsr.json
-        run: test "v$(node -p 'require("./jsr.json").version')" = "$GITHUB_REF_NAME"
       - name: Skip versions already on JSR
         id: published
         run: |
-          if curl -fsS "https://jsr.io/$(node -p 'require("./jsr.json").name')/meta.json" | jq -e --arg v "${GITHUB_REF_NAME#v}" '.versions[$v]' >/dev/null 2>&1; then
+          if curl -fsS "https://jsr.io/$(node -p 'require("./jsr.json").name')/meta.json" | jq -e --arg v "${TAG#v}" '.versions[$v]' >/dev/null 2>&1; then
             echo "already=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::${GITHUB_REF_NAME} is already on JSR; nothing to publish."
+            echo "::notice::${TAG} is already on JSR; nothing to publish."
           fi
       # Authenticates with the GitHub Actions OIDC token; no secret is stored.
       - if: steps.published.outputs.already != 'true'
