@@ -57,7 +57,7 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
           cache: npm
-      # Staged publishing needs npm 11.15.0 or later.
+      # Trusted publishing needs npm 11.5.1 or later.
       - run: npm install -g npm@11
       - name: Skip versions already on npm
         id: published
@@ -73,10 +73,8 @@ jobs:
       - if: steps.published.outputs.already != 'true'
         run: npm test
       # Authenticates with npm trusted publishing (OIDC); no token is stored.
-      # The trusted publisher only allows staging, so the version goes live
-      # once a maintainer approves it on npm (npm stage approve).
       - if: steps.published.outputs.already != 'true'
-        run: npm stage publish --access public --provenance
+        run: npm publish --access public --provenance
 
   jsr:
     needs: release
