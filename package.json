@@ -1,6 +1,6 @@
 {
   "name": "@nozomi-hiragi/i-json",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Strict JSON parser, serializer and validator conforming to I-JSON (RFC 7493): UTF-8 only, no duplicate keys, IEEE 754 safe numbers, no lone surrogates.",
   "license": "MIT",
   "author": "nozomi-hiragi",

@@ -20,6 +20,13 @@ I-JSON is a restricted profile of JSON ([RFC 8259](https://www.rfc-editor.org/rf
 npm install @nozomi-hiragi/i-json
 ```
 
+Also on [JSR](https://jsr.io/@nozomi-hiragi/i-json) for Deno and other runtimes:
+
+```sh
+deno add jsr:@nozomi-hiragi/i-json
+# or: npx jsr add @nozomi-hiragi/i-json
+```
+
 ## Usage
 
 ```ts
