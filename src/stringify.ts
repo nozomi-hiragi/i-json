@@ -1,4 +1,4 @@
-import { DEFAULT_MAX_DEPTH, IJsonError, isNoncharacter, type Options } from "./errors.js";
+import { DEFAULT_MAX_DEPTH, IJsonError, isNoncharacter, type Options } from "./errors.ts";
 
 /**
  * Serializes `value` as an I-JSON message. Throws `IJsonError` instead of

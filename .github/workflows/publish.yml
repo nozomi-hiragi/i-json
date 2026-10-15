@@ -1,7 +1,7 @@
 name: Publish
 
-# Publishes to npm when a GitHub release is published. The release tag must
-# match the version in package.json (e.g. v0.1.0).
+# Publishes to npm and JSR when a GitHub release is published. The release tag
+# must match the version in package.json and jsr.json (e.g. v0.1.0).
 
 on:
   release:
@@ -9,7 +9,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write # npm trusted publishing and provenance
+  id-token: write # npm trusted publishing and provenance, JSR OIDC publishing
 
 jobs:
   publish:
@@ -42,3 +42,23 @@ jobs:
       # Authenticates with npm trusted publishing (OIDC); no token is stored.
       - if: steps.published.outputs.already != 'true'
         run: npm publish --access public --provenance
+
+  jsr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Check the tag matches jsr.json
+        run: test "v$(node -p 'require("./jsr.json").version')" = "$GITHUB_REF_NAME"
+      - name: Skip versions already on JSR
+        id: published
+        run: |
+          if curl -fsS "https://jsr.io/$(node -p 'require("./jsr.json").name')/meta.json" | jq -e --arg v "${GITHUB_REF_NAME#v}" '.versions[$v]' >/dev/null 2>&1; then
+            echo "already=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::${GITHUB_REF_NAME} is already on JSR; nothing to publish."
+          fi
+      # Authenticates with the GitHub Actions OIDC token; no secret is stored.
+      - if: steps.published.outputs.already != 'true'
+        run: npx -y jsr@0.14.3 publish

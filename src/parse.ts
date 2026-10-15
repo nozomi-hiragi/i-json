@@ -1,4 +1,4 @@
-import { DEFAULT_MAX_DEPTH, IJsonError, isNoncharacter, type Options } from "./errors.js";
+import { DEFAULT_MAX_DEPTH, IJsonError, isNoncharacter, type Options } from "./errors.ts";
 
 /** A JSON value as produced by `parse`. */
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
